@@ -30,7 +30,7 @@ public class LocalBackupService implements IBackupAdapter {
       FileReader jsonReader = new FileReader("storage/" + player1Name + "-" + player2Name + ".json");
       result = gson.fromJson(jsonReader, Game.class);
     } catch (FileNotFoundException e) {
-      System.out.println("Can't read file.");
+      e.printStackTrace();
     }
 
     return result;
