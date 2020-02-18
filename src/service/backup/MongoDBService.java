@@ -15,9 +15,9 @@ public class MongoDBService {
   private static final MongoCollection<Game> gamesCollection = MongoDBConfig.getDatabase().getCollection("games", Game.class);
 
   /**
-   * Returns true if local copy of the game doesn't match the backup copy.
+   * Check if local copy of game matches with remote copy.
    * @param localGame
-   * @return
+   * @return true if sync needed, false otherwise
    */
   public boolean syncNeeded(Game localGame) {
     Game remoteGame = findGameById(localGame.id);
@@ -42,7 +42,7 @@ public class MongoDBService {
   /**
    * Returns backup copy of game with id.
    * @param id
-   * @return
+   * @return backup game data
    */
   public Game findGameById(int id) {
     return (Game) gamesCollection.find(eq("id", id));
@@ -50,7 +50,7 @@ public class MongoDBService {
 
   /**
    * Obtains all backup game ids.
-   * @return
+   * @return list if game ids
    */
   public List<Integer> getGameIds() {
     List<Integer> ids = new ArrayList<>();
