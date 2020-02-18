@@ -22,7 +22,7 @@ public class MongoDBService implements IBackupAdapter {
    */
   @Override
   public boolean syncNeeded(Game localGame) {
-    Game remoteGame = findGameById(localGame.id);
+    Game remoteGame = findGame(localGame);
     return !localGame.equals(remoteGame);
   }
 
@@ -43,12 +43,13 @@ public class MongoDBService implements IBackupAdapter {
   }
 
   /**
-   * Returns backup copy of game with id.
-   * @param id
+   * Returns backup copy of given game object.
+   * @param game
    * @return backup game data
    */
   @Override
-  public Game findGameById(int id) {
+  public Game findGame(Game game) {
+    int id = game.id;
     return (Game) gamesCollection.find(eq("id", id));
   }
 

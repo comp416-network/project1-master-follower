@@ -5,7 +5,7 @@ import domain.Game;
 public interface IBackupAdapter {
 
   boolean syncNeeded(Game localGame);
-  Game findGameById(int id);
+  Game findGame(Game game);
   void updateGameState(Game game);
 
 }

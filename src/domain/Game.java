@@ -2,7 +2,7 @@ package domain;
 
 public class Game {
 
-  public static int nextId = 1;
+  public transient static int nextId = 1;
 
   public final int id;
   public Player player1;
