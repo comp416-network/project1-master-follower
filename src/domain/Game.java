@@ -1,7 +1,5 @@
 package domain;
 
-import java.beans.Transient;
-
 public class Game {
 
   public static int nextId = 1;
@@ -23,7 +21,5 @@ public class Game {
     this.id = nextId;
     nextId++;
   }
-
-
 
 }
