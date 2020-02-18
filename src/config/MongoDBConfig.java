@@ -11,7 +11,10 @@ import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
 public class MongoDBConfig {
 
-  private static final String clientURI = "mongodb+srv://admin:comp416@war-game-g4jzy.mongodb.net/test?retryWrites=true&w=majority";
+  private static final String username = "admin";
+  private static final String password = "comp416";
+
+  private static final String clientURI = "mongodb+srv://" + username + ":" + password + "@war-game-g4jzy.mongodb.net/test?retryWrites=true&w=majority";
 
   private static MongoClientURI uri = new MongoClientURI(clientURI);
 

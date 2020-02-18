@@ -18,6 +18,9 @@ public class MongoDBService {
     List<Integer> ids = getGameIds();
     if (ids.contains(game.id)) {
       gamesCollection.deleteOne(eq("id", game.id));
+      System.out.println("Updated game with id: " + game.id);
+    } else {
+      System.out.println("Created new game with id: " + game.id);
     }
     gamesCollection.insertOne(game);
   }
@@ -26,7 +29,7 @@ public class MongoDBService {
     return (Game) gamesCollection.find(eq("id", id));
   }
 
-  private List<Integer> getGameIds() {
+  public List<Integer> getGameIds() {
     List<Integer> ids = new ArrayList<>();
     try (MongoCursor<Game> cursor = gamesCollection.find().iterator()) {
       while (cursor.hasNext()) {
