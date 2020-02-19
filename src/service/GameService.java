@@ -25,8 +25,8 @@ public class GameService {
 
   /**
    * compare two card values (indexed from 0 to 51)
-   * @param c1
-   * @param c2
+   * @param c1 an integer representing the first card
+   * @param c2 an integer representing the second card
    * @return -1 if c1 is greater, +1 if c2 is greater, 0 if tie
    */
   public int compareCards(int c1, int c2) {
