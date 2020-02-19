@@ -42,6 +42,12 @@ public class MongoDBService implements IBackupAdapter {
     gamesCollection.insertOne(game);
   }
 
+  @Override
+  public void deleteGame(Game game) {
+    int id = game.id;
+    gamesCollection.deleteOne(eq("id", id));
+  }
+
   /**
    * Returns backup copy of given game object.
    * @param game

@@ -18,6 +18,7 @@ public class ClientHandler extends Thread {
 
   public ClientHandler(Socket clientSocket) {
     this.clientSocket = clientSocket;
+    this.game = null;
   }
 
   @Override

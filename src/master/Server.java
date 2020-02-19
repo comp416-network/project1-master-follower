@@ -43,11 +43,13 @@ public class Server {
       System.out.println("First client (" + client1Socket.getRemoteSocketAddress()
               + ") connected. Waiting for second client...");
       ClientHandler handler1 = new ClientHandler(client1Socket);
+      handler1.start();
 
       client2Socket = serverSocket.accept();
       System.out.println("Second client (" + client2Socket.getRemoteSocketAddress()
               + ") connected. Starting game...");
       ClientHandler handler2 = new ClientHandler(client2Socket);
+      handler2.start();
 
       Game game = new Game();
       handler1.setGame(game);

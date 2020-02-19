@@ -4,10 +4,7 @@ import com.google.gson.Gson;
 import domain.Game;
 import service.IBackupAdapter;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 
 public class LocalBackupService implements IBackupAdapter {
 
@@ -22,12 +19,9 @@ public class LocalBackupService implements IBackupAdapter {
   public Game findGame(Game game) {
     Gson gson = new Gson();
 
-    String player1Name = game.player1.name;
-    String player2Name = game.player2.name;
-
     Game result = null;
     try {
-      FileReader jsonReader = new FileReader("storage/" + player1Name + "-" + player2Name + ".json");
+      FileReader jsonReader = new FileReader("storage/" + getFileNameFromGame(game));
       result = gson.fromJson(jsonReader, Game.class);
     } catch (FileNotFoundException e) {
       e.printStackTrace();
@@ -40,16 +34,23 @@ public class LocalBackupService implements IBackupAdapter {
   public void updateGameState(Game game) {
     Gson gson = new Gson();
 
-    String player1Name = game.player1.name;
-    String player2Name = game.player2.name;
-
     try {
-      FileWriter jsonWriter = new FileWriter("storage/" + player1Name + "-" + player2Name + ".json");
+      FileWriter jsonWriter = new FileWriter("storage/" + getFileNameFromGame(game));
       gson.toJson(game, jsonWriter);
       jsonWriter.close();
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  @Override
+  public void deleteGame(Game game) {
+    File file = new File("storage/" + getFileNameFromGame(game));
+    file.delete();
+  }
+
+  private String getFileNameFromGame(Game game) {
+    return game.player1.name + "-" + game.player2 + ".json";
   }
 
 }
