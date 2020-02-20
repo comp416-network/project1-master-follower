@@ -22,4 +22,12 @@ public class Game {
     nextId++;
   }
 
+  public void addPlayer(Player player) {
+    if (player1 == null) {
+      player1 = player;
+    } else {
+      player2 = player;
+    }
+  }
+
 }

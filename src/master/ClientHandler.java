@@ -1,6 +1,7 @@
 package master;
 
 import domain.Game;
+import domain.Player;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,6 +16,7 @@ public class ClientHandler extends Thread {
   private Socket clientSocket;
 
   private Game game;
+  private Player player;
 
   public ClientHandler(Socket clientSocket) {
     this.clientSocket = clientSocket;
@@ -23,22 +25,32 @@ public class ClientHandler extends Thread {
 
   @Override
   public void run() {
-    System.out.println("Thread started running for client " + clientSocket.getRemoteSocketAddress());
     try {
       in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
       out = new PrintWriter(clientSocket.getOutputStream());
-
+      out.println("Connected to the game with id: " + game.id);
     } catch (IOException e) {
       e.printStackTrace();
     }
 
+    out.print("Enter name: ");
     try {
-      clientSocket.close();
-      in.close();
-      out.close();
+      String name = in.readLine();
+
+      player = new Player(name);
+      game.addPlayer(player);
     } catch (IOException e) {
       e.printStackTrace();
     }
+
+
+//    try {
+//      clientSocket.close();
+//      in.close();
+//      out.close();
+//    } catch (IOException e) {
+//      e.printStackTrace();
+//    }
   }
 
   public void setGame(Game game) {

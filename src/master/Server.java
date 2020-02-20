@@ -1,10 +1,14 @@
 package master;
 
 import domain.Game;
+import service.IBackupAdapter;
+import service.backup.LocalBackupService;
+import service.backup.MongoDBService;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class Server {
 
@@ -13,8 +17,11 @@ public class Server {
 
   private ServerSocket serverSocket;
 
+  private ArrayList<Game> activeGames;
+
   public Server(int port) {
     try {
+      activeGames = new ArrayList<>();
       serverSocket = new ServerSocket(port);
       System.out.println("Listening on port: " + DEFAULT_PORT);
     } catch (IOException e) {
@@ -54,12 +61,23 @@ public class Server {
       Game game = new Game();
       handler1.setGame(game);
       handler2.setGame(game);
+      activeGames.add(game);
       System.out.println("Clients connected to game with id: " + game.id);
 
 
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  private void backupModifiedGames() {
+    IBackupAdapter backupService = new LocalBackupService();
+    activeGames.forEach(game -> {
+      if (backupService.syncNeeded(game)) {
+        backupService.updateGameState(game);
+        System.out.println("Updated game with id: " + game.id);
+      }
+    });
   }
 
 }
