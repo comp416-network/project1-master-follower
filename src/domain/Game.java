@@ -1,6 +1,8 @@
 package domain;
 
+import master.GameListener;
 import master.GameState;
+import service.GameService;
 
 import java.util.ArrayList;
 
@@ -18,6 +20,8 @@ public class Game {
   public transient ArrayList<Integer> deck1;
   public transient ArrayList<Integer> deck2;
 
+  public ArrayList<GameListener> listeners = new ArrayList<>();
+
   public Game() {
     state = GameState.IDLE;
     this.id = nextId;
@@ -32,22 +36,42 @@ public class Game {
     nextId++;
   }
 
-  public Player addPlayer(Player player) {
+  public void addPlayer(Player player) {
     if (player1 == null) {
       player1 = player;
       player1.deck = deck1;
-      System.out.println(player.deck);
-      return player1;
     } else {
       player2 = player;
       player2.deck = deck2;
-      System.out.println(player.deck);
-      return player2;
+    }
+    System.out.println(player.deck);
+
+    if (isReady()) {
+      listeners.forEach(GameListener::gameReadyAction);
     }
   }
 
   public boolean isReady() {
     return player1 != null && player2 != null;
+  }
+
+  public void playCard(Player player, int card) {
+    player.nextCard = card;
+    if (player1.nextCard >= 0 && player2.nextCard >= 0) {
+      Player winner = null;
+      int result = GameService.compareCards(player1.nextCard, player2.nextCard);
+      if (result < 0) {
+        winner = player1;
+      } else if (result > 0) {
+        winner = player2;
+      }
+
+      for (GameListener listener : listeners) {
+        listener.cardsPlayedAction(winner);
+      }
+      player1.nextCard = -1;
+      player2.nextCard = -1;
+    }
   }
 
 }

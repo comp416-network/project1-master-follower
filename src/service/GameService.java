@@ -29,7 +29,7 @@ public class GameService {
    * @param c2 an integer representing the second card
    * @return -1 if c1 is greater, +1 if c2 is greater, 0 if tie
    */
-  public int compareCards(int c1, int c2) {
+  public static int compareCards(int c1, int c2) {
     // TODO
     return 0;
   }

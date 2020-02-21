@@ -7,6 +7,7 @@ public class Player {
   public String name;
   public int score;
   public ArrayList<Integer> deck;
+  public int nextCard = -1;
 
   public Player() {
 

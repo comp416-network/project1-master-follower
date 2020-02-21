@@ -12,7 +12,7 @@ import java.net.SocketException;
 
 import static master.Message.*;
 
-public class ClientHandler extends Thread {
+public class ClientHandler extends Thread implements GameListener {
 
   private PrintWriter out;
   private BufferedReader in;
@@ -21,9 +21,12 @@ public class ClientHandler extends Thread {
   private Game game;
   private Player player;
 
+  private boolean isPrompting;
+
   public ClientHandler(Socket clientSocket) {
     this.clientSocket = clientSocket;
     this.game = null;
+    this.isPrompting = true;
   }
 
   @Override
@@ -36,14 +39,18 @@ public class ClientHandler extends Thread {
     }
 
     Integer message = -1;
-    // handler keeps waiting for new message until
-    //    message is null or "quit"
-    //    then stops waiting and closes connection
+
+    // this is the main loop that the handler checks for messages
+    //  if the isPrompting variable is false, the loop is not executed, but still repeated
+    //  it is used to block user input in a way
     while (message != QUIT_GAME.getValue()) {
       try {
         // TODO: message error checking on client side
-        out.println("Enter command: ");
-        out.flush();
+        if (isPrompting) {
+          send("Enter command: ");
+        } else {
+          continue;
+        }
         message = Integer.parseInt(in.readLine());
         if (message != QUIT_GAME.getValue()) {
 
@@ -52,35 +59,27 @@ public class ClientHandler extends Thread {
             // get player name
             String name = askForName();
             System.out.println("Player ready: " + name);
-            player = game.addPlayer(new Player(name));
+            player = new Player(name);
 
-            // this will be done once when two players are ready
-            out.println("Waiting for other player to get ready...");
-            out.flush();
+            send("Waiting for other player...");
+            game.addPlayer(player);
+            isPrompting = false;
 
-            // wait for other player to get ready
-            while (true) {
-              Thread.sleep(42);
-              if (game.isReady()) {
-                System.out.println("Sending deck to " + player.name);
-                out.println("game start");
-                out.flush();
-                for (Integer card : player.deck) {
-                  out.println(card);
-                }
-                out.flush();
-                break;
-              }
-            }
 
           } else if (message == PLAY_CARD.getValue()) {
-            System.out.println("received play card message.");
+            int card = Integer.parseInt(in.readLine());
+
+            send("Waiting for other player to play a card...");
+            game.playCard(player, card);
+            isPrompting = false;
+
+
           } else {
             System.out.println("received wrong message.");
           }
 
         }
-      } catch (IOException | InterruptedException e) {
+      } catch (IOException e) {
         this.close();
       }
     }
@@ -95,13 +94,33 @@ public class ClientHandler extends Thread {
     }
   }
 
-  public boolean isActive() {
-    try {
-      return in.read() != -1;
-    } catch (IOException e) {
-      return false;
+  // LISTENER METHODS
+
+  @Override
+  public void gameReadyAction() {
+    System.out.println("Sending deck to " + player.name);
+    send("game start");
+    for (Integer card : player.deck) {
+      out.println(card);
     }
+    out.flush();
+    isPrompting = true;
   }
+
+  @Override
+  public void cardsPlayedAction(Player winner) {
+    if (player.equals(winner)) {
+      player.score++;
+      send("You win this round!");
+    } else if (winner == null) {
+      send("It was a tie!");
+    } else {
+      send("You lose!");
+    }
+    isPrompting = true;
+  }
+
+  // HELPER METHODS
 
   public void close() {
     try {
@@ -115,8 +134,7 @@ public class ClientHandler extends Thread {
   }
 
   private String askForName() {
-    out.println("Enter name: ");
-    out.flush();
+    send("Enter name: ");
     String name = null;
     try {
       name = in.readLine();
@@ -126,9 +144,15 @@ public class ClientHandler extends Thread {
     return name;
   }
 
+  private void send(String message) {
+    out.println(message);
+    out.flush();
+  }
+
   // GETTERS & SETTERS
 
   public void setGame(Game game) {
+    game.listeners.add(this);
     this.game = game;
   }
 
