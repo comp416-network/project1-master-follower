@@ -9,11 +9,14 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Set;
 
 public class Server {
 
   public static final String DEFAULT_ADDRESS = "localhost";
   public static final int DEFAULT_PORT = 4242;
+
+  private SetupState setupState = SetupState.WAITING_2;
 
   private ServerSocket serverSocket;
 
@@ -29,7 +32,7 @@ public class Server {
     }
 
     while (true) {
-      listenAndAccept();
+      waitForConnections();
     }
   }
 
@@ -41,33 +44,44 @@ public class Server {
     }
   }
 
-  private void listenAndAccept() {
-    Socket client1Socket;
-    Socket client2Socket;
-    try {
-      System.out.println();
-      client1Socket = serverSocket.accept();
-      System.out.println("First client (" + client1Socket.getRemoteSocketAddress()
-              + ") connected. Waiting for second client...");
-      ClientHandler handler1 = new ClientHandler(client1Socket);
-      handler1.start();
+  private void waitForConnections() {
+    ClientHandler client1Handler = null;
+    ClientHandler client2Handler = null;
+    Game game = null;
+    while (true) {
+      try {
+        Socket socket = serverSocket.accept();
+        if (setupState == SetupState.WAITING_2) {
+          game = new Game();
+          setupState = SetupState.WAITING_1;
+          System.out.println("First client connected.");
+          client1Handler = connectClient(socket, game);
+        } else if (setupState == SetupState.WAITING_1) {
+          if (!client1Handler.isActive()) {
+            client1Handler.close();
+            game = new Game();
+            setupState = SetupState.WAITING_1;
+            System.out.println("First client connected.");
+            client1Handler = connectClient(socket, game);
+          } else {
+            client2Handler = connectClient(socket, game);
+            setupState = SetupState.READY;
+            System.out.println("Second client connected.");
+          }
+        }
 
-      client2Socket = serverSocket.accept();
-      System.out.println("Second client (" + client2Socket.getRemoteSocketAddress()
-              + ") connected. Starting game...");
-      ClientHandler handler2 = new ClientHandler(client2Socket);
-      handler2.start();
+        if (setupState == SetupState.READY) {
+          activeGames.add(game);
+          System.out.println("Started game.");
+          setupState = SetupState.WAITING_2;
+          return;
+        }
 
-      Game game = new Game();
-      handler1.setGame(game);
-      handler2.setGame(game);
-      activeGames.add(game);
-      System.out.println("Clients connected to game with id: " + game.id);
-
-
-    } catch (IOException e) {
-      e.printStackTrace();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     }
+
   }
 
   private void backupModifiedGames() {
@@ -78,6 +92,13 @@ public class Server {
         System.out.println("Updated game with id: " + game.id);
       }
     });
+  }
+
+  private ClientHandler connectClient(Socket socket, Game game) {
+    ClientHandler handler = new ClientHandler(socket);
+    handler.setGame(game);
+    handler.start();
+    return handler;
   }
 
 }

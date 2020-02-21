@@ -28,14 +28,16 @@ public class ClientHandler extends Thread {
     try {
       in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
       out = new PrintWriter(clientSocket.getOutputStream());
-      out.println("Connected to the game with id: " + game.id);
     } catch (IOException e) {
       e.printStackTrace();
     }
 
-    out.print("Enter name: ");
+    // get player name
     try {
       String name = in.readLine();
+      System.out.println("Player entered name: " + name);
+      out.println("Hello " + name + "!");
+      out.flush();
 
       player = new Player(name);
       game.addPlayer(player);
@@ -43,14 +45,52 @@ public class ClientHandler extends Thread {
       e.printStackTrace();
     }
 
+    String message = "";
+    while (message != null && !message.equals("quit")) {
+      try {
+        message = in.readLine();
+        if (message != null) {
+          System.out.println("Received message: " + message);
+          out.println("Response: " + message);
+          out.flush();
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
 
-//    try {
-//      clientSocket.close();
-//      in.close();
-//      out.close();
-//    } catch (IOException e) {
-//      e.printStackTrace();
-//    }
+    try {
+      System.out.println("Closed connection to player: " + player.name);
+      clientSocket.close();
+      in.close();
+      out.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public String listenAndRespond() throws IOException {
+    String message = in.readLine();
+    // do something with message
+    return "Received from client: " + message;
+  }
+
+  public boolean isActive() {
+    try {
+      return in.read() != -1;
+    } catch (IOException e) {
+      return false;
+    }
+  }
+
+  public void close() {
+    try {
+      in.close();
+      clientSocket.close();
+      out.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   public void setGame(Game game) {
