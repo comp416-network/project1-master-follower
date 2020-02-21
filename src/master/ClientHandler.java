@@ -99,7 +99,7 @@ public class ClientHandler extends Thread implements GameListener {
   @Override
   public void gameReadyAction() {
     System.out.println("Sending deck to " + player.name);
-    send("game start");
+    send(Integer.toString(GAME_START.getValue()));
     for (Integer card : player.deck) {
       out.println(card);
     }
@@ -109,13 +109,27 @@ public class ClientHandler extends Thread implements GameListener {
 
   @Override
   public void cardsPlayedAction(Player winner) {
+    send(Integer.toString(PLAY_RESULT.getValue()));
     if (player.equals(winner)) {
       player.score++;
-      send("You win this round!");
+      send(Integer.toString(ResultMessage.WIN.getValue()));
     } else if (winner == null) {
-      send("It was a tie!");
+      send(Integer.toString(ResultMessage.LOSE.getValue()));
     } else {
-      send("You lose!");
+      send(Integer.toString(ResultMessage.DRAW.getValue()));
+    }
+    isPrompting = true;
+  }
+
+  @Override
+  public void gameEndAction(Player winner) {
+    send(Integer.toString(GAME_RESULT.getValue()));
+    if (player.equals(winner)) {
+      send(Integer.toString(ResultMessage.WIN.getValue()));
+    } else if (winner == null) {
+      send(Integer.toString(ResultMessage.LOSE.getValue()));
+    } else {
+      send(Integer.toString(ResultMessage.DRAW.getValue()));
     }
     isPrompting = true;
   }
