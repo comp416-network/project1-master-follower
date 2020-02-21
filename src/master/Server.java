@@ -53,7 +53,7 @@ public class Server {
       try {
         Socket socket = serverSocket.accept();
         if (setupState == SetupState.WAITING_2) {
-          game = new Game();
+          game = initiateGame();
           setupState = SetupState.WAITING_1;
           System.out.println("First client connected.");
           client1Handler = connectClient(socket, game);
@@ -62,12 +62,11 @@ public class Server {
             // detect if client 1 has disconnected while waiting for client2
             //   assign new connection as client1 if so
             client1Handler.close();
-            game = new Game();
+            game = initiateGame();
             setupState = SetupState.WAITING_1;
             System.out.println("First client connected.");
             client1Handler = connectClient(socket, game);
           } else {
-            System.out.println("wekrj");
             client2Handler = connectClient(socket, game);
             setupState = SetupState.READY;
             System.out.println("Second client connected.");
@@ -76,9 +75,7 @@ public class Server {
 
         if (setupState == SetupState.READY) {
           activeGames.add(game);
-          ArrayList<ArrayList<Integer>> decks = GameService.generateDecks();
-          game.deck1 = decks.get(0);
-          game.deck2 = decks.get(1);
+          game.state = GameState.WAITING;
           System.out.println("Started game.");
           setupState = SetupState.WAITING_2;
           return;
@@ -99,6 +96,14 @@ public class Server {
         System.out.println("Updated game with id: " + game.id);
       }
     });
+  }
+
+  private Game initiateGame() {
+    Game game = new Game();
+    ArrayList<ArrayList<Integer>> decks = GameService.generateDecks();
+    game.deck1 = decks.get(0);
+    game.deck2 = decks.get(1);
+    return game;
   }
 
   private ClientHandler connectClient(Socket socket, Game game) {

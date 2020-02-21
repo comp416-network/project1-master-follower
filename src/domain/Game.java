@@ -1,5 +1,7 @@
 package domain;
 
+import master.GameState;
+
 import java.util.ArrayList;
 
 public class Game {
@@ -11,10 +13,13 @@ public class Game {
   public Player player2;
   public int rounds;
 
+  public GameState state;
+
   public transient ArrayList<Integer> deck1;
   public transient ArrayList<Integer> deck2;
 
   public Game() {
+    state = GameState.IDLE;
     this.id = nextId;
     nextId++;
   }
@@ -31,10 +36,12 @@ public class Game {
     if (player1 == null) {
       player1 = player;
       player1.deck = deck1;
+      System.out.println(player.deck);
       return player1;
     } else {
       player2 = player;
       player2.deck = deck2;
+      System.out.println(player.deck);
       return player2;
     }
   }

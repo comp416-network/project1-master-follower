@@ -50,20 +50,23 @@ public class ClientHandler extends Thread {
           // handle message
           if (message == WANT_GAME.getValue()) {
             // get player name
-            out.println("Enter name: ");
-            out.flush();
-            String name = in.readLine();
-            System.out.println("Player entered name: " + name);
+            String name = askForName();
+            System.out.println("Player ready: " + name);
             player = game.addPlayer(new Player(name));
 
             // this will be done once when two players are ready
             out.println("Waiting for other player to get ready...");
             out.flush();
+
+            // wait for other player to get ready
             while (true) {
+              Thread.sleep(42);
               if (game.isReady()) {
+                System.out.println("Sending deck to " + player.name);
+                out.println("game start");
+                out.flush();
                 for (Integer card : player.deck) {
-                  System.out.println("Sent card: " + card);
-                  out.write(card);
+                  out.println(card);
                 }
                 out.flush();
                 break;
@@ -77,10 +80,8 @@ public class ClientHandler extends Thread {
           }
 
         }
-      } catch (SocketException e) {
+      } catch (IOException | InterruptedException e) {
         this.close();
-      } catch (IOException e) {
-        e.printStackTrace();
       }
     }
 
@@ -107,9 +108,22 @@ public class ClientHandler extends Thread {
       in.close();
       clientSocket.close();
       out.close();
+      this.stop();
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  private String askForName() {
+    out.println("Enter name: ");
+    out.flush();
+    String name = null;
+    try {
+      name = in.readLine();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return name;
   }
 
   // GETTERS & SETTERS
