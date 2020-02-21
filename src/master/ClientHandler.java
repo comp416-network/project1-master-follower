@@ -9,6 +9,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+import static master.Message.*;
+
 public class ClientHandler extends Thread {
 
   private PrintWriter out;
@@ -32,27 +34,46 @@ public class ClientHandler extends Thread {
       e.printStackTrace();
     }
 
-    // get player name
-    try {
-      String name = in.readLine();
-      System.out.println("Player entered name: " + name);
-      out.println("Hello " + name + "!");
-      out.flush();
-
-      player = new Player(name);
-      game.addPlayer(player);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-
-    String message = "";
-    while (message != null && !message.equals("quit")) {
+    Integer message = -1;
+    // handler keeps waiting for new message until
+    //    message is null or "quit"
+    //    then stops waiting and closes connection
+    while (message != QUIT_GAME.getValue()) {
       try {
-        message = in.readLine();
-        if (message != null) {
+        // TODO: message error checking on client side
+        out.println("Enter command: ");
+        out.flush();
+        message = Integer.parseInt(in.readLine());
+        if (message != QUIT_GAME.getValue()) {
           System.out.println("Received message: " + message);
-          out.println("Response: " + message);
-          out.flush();
+
+          // handle message
+          if (message == WANT_GAME.getValue()) {
+            // get player name
+            out.println("Enter name: ");
+            out.flush();
+            String name = in.readLine();
+            System.out.println("Player entered name: " + name);
+            player = new Player(name);
+            game.addPlayer(player);
+
+            // this will be done once when two players are ready
+            if (game.isReady()) {
+              // send cards
+              for (Integer card : player.deck) {
+                out.write(card);
+                System.out.println("Sent card: " + card);
+              }
+              out.flush();
+            }
+          } else if (message == PLAY_CARD.getValue()) {
+            System.out.println("received play card message.");
+          } else {
+            System.out.println("received wrong message.");
+          }
+
+//          out.println("Response: " + message);
+//          out.flush();
         }
       } catch (IOException e) {
         e.printStackTrace();
@@ -67,12 +88,6 @@ public class ClientHandler extends Thread {
     } catch (IOException e) {
       e.printStackTrace();
     }
-  }
-
-  public String listenAndRespond() throws IOException {
-    String message = in.readLine();
-    // do something with message
-    return "Received from client: " + message;
   }
 
   public boolean isActive() {
@@ -92,6 +107,8 @@ public class ClientHandler extends Thread {
       e.printStackTrace();
     }
   }
+
+  // GETTERS & SETTERS
 
   public void setGame(Game game) {
     this.game = game;

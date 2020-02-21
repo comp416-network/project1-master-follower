@@ -9,7 +9,7 @@ public class GameService {
    * Generate player decks containing 26 integers representing cards
    * @return an ArrayList holding two ArrayLists that are the decks themselves
    */
-  public ArrayList<ArrayList<Integer>> generateDecks() {
+  public static ArrayList<ArrayList<Integer>> generateDecks() {
     ArrayList<Integer> nums = new ArrayList<>();
     ArrayList<ArrayList<Integer>> decks = new ArrayList<>();
     for (int i = 0; i < 52; i++) {

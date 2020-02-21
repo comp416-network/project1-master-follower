@@ -1,6 +1,7 @@
 package master;
 
 import domain.Game;
+import service.GameService;
 import service.IBackupAdapter;
 import service.backup.LocalBackupService;
 import service.backup.MongoDBService;
@@ -58,6 +59,8 @@ public class Server {
           client1Handler = connectClient(socket, game);
         } else if (setupState == SetupState.WAITING_1) {
           if (!client1Handler.isActive()) {
+            // detect if client 1 has disconnected while waiting for client2
+            //   assign new connection as client1 if so
             client1Handler.close();
             game = new Game();
             setupState = SetupState.WAITING_1;
@@ -72,6 +75,9 @@ public class Server {
 
         if (setupState == SetupState.READY) {
           activeGames.add(game);
+          ArrayList<ArrayList<Integer>> decks = GameService.generateDecks();
+          game.deck1 = decks.get(0);
+          game.deck2 = decks.get(1);
           System.out.println("Started game.");
           setupState = SetupState.WAITING_2;
           return;
