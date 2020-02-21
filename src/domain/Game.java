@@ -27,13 +27,15 @@ public class Game {
     nextId++;
   }
 
-  public void addPlayer(Player player) {
+  public Player addPlayer(Player player) {
     if (player1 == null) {
       player1 = player;
       player1.deck = deck1;
+      return player1;
     } else {
       player2 = player;
       player2.deck = deck2;
+      return player2;
     }
   }
 

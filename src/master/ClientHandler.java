@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketException;
 
 import static master.Message.*;
 
@@ -45,7 +46,6 @@ public class ClientHandler extends Thread {
         out.flush();
         message = Integer.parseInt(in.readLine());
         if (message != QUIT_GAME.getValue()) {
-          System.out.println("Received message: " + message);
 
           // handle message
           if (message == WANT_GAME.getValue()) {
@@ -54,27 +54,31 @@ public class ClientHandler extends Thread {
             out.flush();
             String name = in.readLine();
             System.out.println("Player entered name: " + name);
-            player = new Player(name);
-            game.addPlayer(player);
+            player = game.addPlayer(new Player(name));
 
             // this will be done once when two players are ready
-            if (game.isReady()) {
-              // send cards
-              for (Integer card : player.deck) {
-                out.write(card);
-                System.out.println("Sent card: " + card);
+            out.println("Waiting for other player to get ready...");
+            out.flush();
+            while (true) {
+              if (game.isReady()) {
+                for (Integer card : player.deck) {
+                  System.out.println("Sent card: " + card);
+                  out.write(card);
+                }
+                out.flush();
+                break;
               }
-              out.flush();
             }
+
           } else if (message == PLAY_CARD.getValue()) {
             System.out.println("received play card message.");
           } else {
             System.out.println("received wrong message.");
           }
 
-//          out.println("Response: " + message);
-//          out.flush();
         }
+      } catch (SocketException e) {
+        this.close();
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -116,6 +120,10 @@ public class ClientHandler extends Thread {
 
   public Game getGame() {
     return game;
+  }
+
+  public Socket getClientSocket() {
+    return clientSocket;
   }
 
 }

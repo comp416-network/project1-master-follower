@@ -17,8 +17,8 @@ public class GameService {
     }
     Collections.shuffle(nums);
 
-    decks.add((ArrayList<Integer>) nums.subList(0, 26));
-    decks.add((ArrayList<Integer>) nums.subList(26, 52));
+    decks.add(new ArrayList<>(nums.subList(0, 26)));
+    decks.add(new ArrayList<>(nums.subList(26, 52)));
 
     return decks;
   }

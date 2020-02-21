@@ -58,7 +58,7 @@ public class Server {
           System.out.println("First client connected.");
           client1Handler = connectClient(socket, game);
         } else if (setupState == SetupState.WAITING_1) {
-          if (!client1Handler.isActive()) {
+          if (!client1Handler.getClientSocket().isConnected()) {
             // detect if client 1 has disconnected while waiting for client2
             //   assign new connection as client1 if so
             client1Handler.close();
@@ -67,6 +67,7 @@ public class Server {
             System.out.println("First client connected.");
             client1Handler = connectClient(socket, game);
           } else {
+            System.out.println("wekrj");
             client2Handler = connectClient(socket, game);
             setupState = SetupState.READY;
             System.out.println("Second client connected.");
