@@ -78,9 +78,10 @@ public class ClientHandler extends Thread implements GameListener {
             while (true) {
               sleep(50);
               if (game.cardsPlayed()) {
+                player.obtainedResult = true;
                 Player winner = game.getWinner();
                 cardsPlayedAction(winner);
-                player.obtainedResult = true;
+
                 break;
               }
             }
