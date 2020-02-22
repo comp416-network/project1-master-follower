@@ -6,11 +6,13 @@ import service.IBackupAdapter;
 import service.backup.LocalBackupService;
 import service.backup.MongoDBService;
 
+import javax.lang.model.type.ArrayType;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Set;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class Server {
 
@@ -31,6 +33,20 @@ public class Server {
     } catch (IOException e) {
       e.printStackTrace();
     }
+
+    Timer t = new Timer();
+    t.schedule(new TimerTask() {
+      @Override
+      public void run() {
+        DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+        Date date = new Date();
+        System.out.println(dateFormat.format(date) + " - Checking if sync is needed...");
+        IBackupAdapter mongoAdapter = new MongoDBService();
+        IBackupAdapter localAdapter = new LocalBackupService();
+        updateBackups(mongoAdapter);
+        updateBackups(localAdapter);
+      }
+    }, 0, 5000);
 
     while (true) {
       waitForConnections();
@@ -89,14 +105,21 @@ public class Server {
 
   }
 
-  private void backupModifiedGames() {
-    IBackupAdapter backupService = new LocalBackupService();
-    activeGames.forEach(game -> {
-      if (backupService.syncNeeded(game)) {
-        backupService.updateGameState(game);
+  private void updateBackups(IBackupAdapter backupService) {
+    ArrayList<Game> toDelete = new ArrayList<>();
+    for (Game game : activeGames) {
+      if (backupService.syncNeeded(game)){
         System.out.println("Updated game with id: " + game.id);
+        backupService.updateGameState(game);
+      } else if (game.isOver()) {
+        System.out.println("Deleting game with id: " + game.id);
+        backupService.deleteGame(game);
+        toDelete.add(game);
       }
-    });
+    }
+    for (Game gameToDelete : toDelete) {
+      activeGames.remove(gameToDelete);
+    }
   }
 
   private Game initiateGame() {

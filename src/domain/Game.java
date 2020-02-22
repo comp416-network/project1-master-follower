@@ -85,11 +85,12 @@ public class Game {
   }
 
   public boolean isOver() {
-    return rounds == 3;
+    return rounds == 26;
   }
 
   public void playCard(Player player, int card) {
     player.nextCard = card;
+    player.deck.remove((Integer) card);
     if (cardsPlayed()) {
       rounds++;
     }
