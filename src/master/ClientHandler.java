@@ -48,38 +48,51 @@ public class ClientHandler extends Thread implements GameListener {
         // TODO: message error checking on client side
         if (isPrompting) {
           send("Enter command: ");
-        } else {
-          continue;
-        }
-        message = Integer.parseInt(in.readLine());
-        if (message != QUIT_GAME.getValue()) {
 
-          // handle message
-          if (message == WANT_GAME.getValue()) {
-            // get player name
-            String name = askForName();
-            System.out.println("Player ready: " + name);
-            player = new Player(name);
+          message = Integer.parseInt(in.readLine());
+          if (message != QUIT_GAME.getValue()) {
 
-            send("Waiting for other player...");
-            game.addPlayer(player);
-            isPrompting = false;
+            // handle message
+            if (message == WANT_GAME.getValue()) {
+              String name = askForName();
+              System.out.println("Player ready: " + name);
+              player = new Player(name);
+
+              send("Waiting for other player...");
+              game.addPlayer(player);
+
+              while (true) {
+                sleep(50);
+                if (game.isReady()) {
+                  System.out.println("Sending deck to " + player.name);
+                  send(Integer.toString(GAME_START.getValue()));
+                  for (Integer card : player.deck) {
+                    out.println(card);
+                  }
+                  out.flush();
+                  setPrompting(true);
+                  break;
+                }
+              }
 
 
-          } else if (message == PLAY_CARD.getValue()) {
-            int card = Integer.parseInt(in.readLine());
+            } else if (message == PLAY_CARD.getValue()) {
+              int card = Integer.parseInt(in.readLine());
 
-            send("Waiting for other player to play a card...");
-            game.playCard(player, card);
-            isPrompting = false;
+              send("Waiting for other player to play a card...");
+              game.playCard(player, card);
+              setPrompting(false);
 
 
-          } else {
-            System.out.println("received wrong message.");
+            } else {
+              System.out.println("received wrong message.");
+            }
+
           }
-
         }
-      } catch (IOException e) {
+
+      } catch (IOException | InterruptedException e) {
+        System.out.println("Exception raised in client handler.");
         this.close();
       }
     }
@@ -104,7 +117,7 @@ public class ClientHandler extends Thread implements GameListener {
       out.println(card);
     }
     out.flush();
-    isPrompting = true;
+    setPrompting(true);
   }
 
   @Override
@@ -118,7 +131,7 @@ public class ClientHandler extends Thread implements GameListener {
     } else {
       send(Integer.toString(ResultMessage.DRAW.getValue()));
     }
-    isPrompting = true;
+    setPrompting(true);
   }
 
   @Override
@@ -131,7 +144,7 @@ public class ClientHandler extends Thread implements GameListener {
     } else {
       send(Integer.toString(ResultMessage.DRAW.getValue()));
     }
-    isPrompting = true;
+    setPrompting(true);
   }
 
   // HELPER METHODS
@@ -176,6 +189,14 @@ public class ClientHandler extends Thread implements GameListener {
 
   public Socket getClientSocket() {
     return clientSocket;
+  }
+
+  public void setPrompting(boolean prompting) {
+    this.isPrompting = prompting;
+  }
+
+  public boolean isPrompting() {
+    return isPrompting;
   }
 
 }

@@ -1,5 +1,6 @@
 package domain;
 
+import master.ClientHandler;
 import master.GameListener;
 import master.GameState;
 import service.GameService;
@@ -20,7 +21,7 @@ public class Game {
   public transient ArrayList<Integer> deck1;
   public transient ArrayList<Integer> deck2;
 
-  public ArrayList<GameListener> listeners = new ArrayList<>();
+  public ArrayList<ClientHandler> listeners = new ArrayList<>();
 
   public Game() {
     state = GameState.IDLE;
@@ -46,9 +47,6 @@ public class Game {
     }
     System.out.println(player.deck);
 
-    if (isReady()) {
-      listeners.forEach(GameListener::gameReadyAction);
-    }
   }
 
   public boolean isReady() {
@@ -66,7 +64,7 @@ public class Game {
         winner = player2;
       }
 
-      for (GameListener listener : listeners) {
+      for (ClientHandler listener : listeners) {
         listener.cardsPlayedAction(winner);
       }
       player1.nextCard = -1;

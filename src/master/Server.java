@@ -78,6 +78,7 @@ public class Server {
           game.state = GameState.WAITING;
           System.out.println("Started game.");
           setupState = SetupState.WAITING_2;
+
           return;
         }
 
