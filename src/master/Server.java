@@ -12,6 +12,8 @@ import java.net.Socket;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Server {
 
@@ -25,6 +27,10 @@ public class Server {
   private ArrayList<Game> activeGames;
 
   public Server(int port) {
+    // make mongodb quieter
+    Logger mongoLogger = Logger.getLogger( "org.mongodb.driver" );
+    mongoLogger.setLevel(Level.SEVERE);
+
     try {
       activeGames = new ArrayList<>();
       serverSocket = new ServerSocket(port);
@@ -37,7 +43,6 @@ public class Server {
     t.schedule(new TimerTask() {
       @Override
       public void run() {
-        System.out.println("Game count: " + activeGames.size());
         DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
         Date date = new Date();
         System.out.println(dateFormat.format(date) + " - Checking if sync is needed...");

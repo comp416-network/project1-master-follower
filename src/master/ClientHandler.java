@@ -11,7 +11,7 @@ import java.net.Socket;
 
 import static master.Message.*;
 
-public class ClientHandler extends Thread implements GameListener {
+public class ClientHandler extends Thread {
 
   private PrintWriter out;
   private BufferedReader in;
@@ -42,10 +42,9 @@ public class ClientHandler extends Thread implements GameListener {
     while (message != QUIT_GAME.getValue()) {
       try {
         // TODO: message error checking on client side
-        send("Enter command: ");
+        send("Enter command (0 -> want game, 2 -> play card, 5 -> quit):");
 
         message = Integer.parseInt(in.readLine());
-        System.out.println("Received: " + message);
         if (message != QUIT_GAME.getValue()) {
 
           // handle message
@@ -54,7 +53,7 @@ public class ClientHandler extends Thread implements GameListener {
             System.out.println("Player ready: " + name);
             player = new Player(name);
 
-            send("Waiting for other player...");
+            send("Waiting for the other player...");
             game.addPlayer(player);
 
             while (true) {
@@ -64,11 +63,8 @@ public class ClientHandler extends Thread implements GameListener {
                 break;
               }
             }
-
-
           } else if (message == PLAY_CARD.getValue()) {
             send("Enter card: ");
-
             int card = Integer.parseInt(in.readLine());
             send("Waiting for other player to play a card...");
             game.playCard(player, card);
@@ -80,7 +76,6 @@ public class ClientHandler extends Thread implements GameListener {
                 player.obtainedResult = true;
                 Player winner = game.roundWinner();
                 cardsPlayedAction(winner);
-
                 break;
               }
             }
@@ -114,9 +109,7 @@ public class ClientHandler extends Thread implements GameListener {
 
   // LISTENER METHODS
 
-  @Override
   public void gameReadyAction() {
-    System.out.println("Sending deck to " + player.name);
     send(Integer.toString(GAME_START.getValue()));
     for (Integer card : player.deck) {
       out.println(card);
@@ -124,7 +117,6 @@ public class ClientHandler extends Thread implements GameListener {
     out.flush();
   }
 
-  @Override
   public void cardsPlayedAction(Player winner) {
     send(Integer.toString(PLAY_RESULT.getValue()));
     if (player.equals(winner)) {
@@ -137,7 +129,6 @@ public class ClientHandler extends Thread implements GameListener {
     }
   }
 
-  @Override
   public void gameEndAction(Player winner) {
     send(Integer.toString(GAME_RESULT.getValue()));
     if (player.equals(winner)) {
@@ -181,7 +172,6 @@ public class ClientHandler extends Thread implements GameListener {
   // GETTERS & SETTERS
 
   public void setGame(Game game) {
-    game.listeners.add(this);
     this.game = game;
   }
 

@@ -16,7 +16,6 @@ public class Game {
   public transient ArrayList<Integer> deck1;
   public transient ArrayList<Integer> deck2;
 
-  public transient ArrayList<ClientHandler> listeners = new ArrayList<>();
   private transient Random random = new Random();
 
   public Game() {
@@ -38,8 +37,6 @@ public class Game {
       player2 = player;
       player2.deck = deck2;
     }
-    System.out.println(player.deck);
-
   }
 
   public boolean isReady() {
@@ -68,13 +65,12 @@ public class Game {
   }
 
   public Player gameWinner() {
-    Player winner = null;
     if (player1.score > player2.score) {
-      winner = player1;
+      return player1;
     } else if (player2.score > player1.score) {
-      winner = player2;
+      return player2;
     }
-    return winner;
+    return null;
   }
 
   public boolean isOver() {
