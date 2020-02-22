@@ -57,7 +57,7 @@ public class Game {
     return player1.nextCard != -1 && player2.nextCard != -1;
   }
 
-  public Player getWinner() {
+  public Player getRoundWinner() {
     Player winner = null;
     int result = GameService.compareCards(player1.nextCard, player2.nextCard);
     if (result < 0) {
@@ -74,8 +74,25 @@ public class Game {
     return winner;
   }
 
+  public Player getGameWinner() {
+    Player winner = null;
+    if (player1.score > player2.score) {
+      winner = player1;
+    } else if (player2.score > player1.score) {
+      winner = player2;
+    }
+    return winner;
+  }
+
+  public boolean isOver() {
+    return rounds == 3;
+  }
+
   public void playCard(Player player, int card) {
     player.nextCard = card;
+    if (cardsPlayed()) {
+      rounds++;
+    }
   }
 
 }
