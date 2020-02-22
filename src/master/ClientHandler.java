@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.SocketException;
 
 import static master.Message.*;
 
@@ -21,12 +20,9 @@ public class ClientHandler extends Thread implements GameListener {
   private Game game;
   private Player player;
 
-  private boolean isPrompting;
-
   public ClientHandler(Socket clientSocket) {
     this.clientSocket = clientSocket;
     this.game = null;
-    this.isPrompting = true;
   }
 
   @Override
@@ -46,49 +42,53 @@ public class ClientHandler extends Thread implements GameListener {
     while (message != QUIT_GAME.getValue()) {
       try {
         // TODO: message error checking on client side
-        if (isPrompting) {
-          send("Enter command: ");
+        send("Enter command: ");
+        System.out.println("prompted client");
 
-          message = Integer.parseInt(in.readLine());
-          if (message != QUIT_GAME.getValue()) {
+        message = Integer.parseInt(in.readLine());
+        System.out.println("Received: " + message);
+        if (message != QUIT_GAME.getValue()) {
 
-            // handle message
-            if (message == WANT_GAME.getValue()) {
-              String name = askForName();
-              System.out.println("Player ready: " + name);
-              player = new Player(name);
+          // handle message
+          if (message == WANT_GAME.getValue()) {
+            String name = askForName();
+            System.out.println("Player ready: " + name);
+            player = new Player(name);
 
-              send("Waiting for other player...");
-              game.addPlayer(player);
+            send("Waiting for other player...");
+            game.addPlayer(player);
 
-              while (true) {
-                sleep(50);
-                if (game.isReady()) {
-                  System.out.println("Sending deck to " + player.name);
-                  send(Integer.toString(GAME_START.getValue()));
-                  for (Integer card : player.deck) {
-                    out.println(card);
-                  }
-                  out.flush();
-                  setPrompting(true);
-                  break;
-                }
+            while (true) {
+              sleep(50);
+              if (game.isReady()) {
+                gameReadyAction();
+                break;
               }
-
-
-            } else if (message == PLAY_CARD.getValue()) {
-              int card = Integer.parseInt(in.readLine());
-
-              send("Waiting for other player to play a card...");
-              game.playCard(player, card);
-              setPrompting(false);
-
-
-            } else {
-              System.out.println("received wrong message.");
             }
 
+
+          } else if (message == PLAY_CARD.getValue()) {
+            send("Enter card: ");
+
+            int card = Integer.parseInt(in.readLine());
+            send("Waiting for other player to play a card...");
+            game.playCard(player, card);
+            player.obtainedResult = false;
+
+            while (true) {
+              sleep(50);
+              if (game.cardsPlayed()) {
+                Player winner = game.getWinner();
+                cardsPlayedAction(winner);
+                player.obtainedResult = true;
+                break;
+              }
+            }
+
+          } else {
+            System.out.println("received wrong message.");
           }
+
         }
 
       } catch (IOException | InterruptedException e) {
@@ -117,7 +117,6 @@ public class ClientHandler extends Thread implements GameListener {
       out.println(card);
     }
     out.flush();
-    setPrompting(true);
   }
 
   @Override
@@ -127,11 +126,10 @@ public class ClientHandler extends Thread implements GameListener {
       player.score++;
       send(Integer.toString(ResultMessage.WIN.getValue()));
     } else if (winner == null) {
-      send(Integer.toString(ResultMessage.LOSE.getValue()));
-    } else {
       send(Integer.toString(ResultMessage.DRAW.getValue()));
+    } else {
+      send(Integer.toString(ResultMessage.LOSE.getValue()));
     }
-    setPrompting(true);
   }
 
   @Override
@@ -144,7 +142,6 @@ public class ClientHandler extends Thread implements GameListener {
     } else {
       send(Integer.toString(ResultMessage.DRAW.getValue()));
     }
-    setPrompting(true);
   }
 
   // HELPER METHODS
@@ -189,14 +186,6 @@ public class ClientHandler extends Thread implements GameListener {
 
   public Socket getClientSocket() {
     return clientSocket;
-  }
-
-  public void setPrompting(boolean prompting) {
-    this.isPrompting = prompting;
-  }
-
-  public boolean isPrompting() {
-    return isPrompting;
   }
 
 }

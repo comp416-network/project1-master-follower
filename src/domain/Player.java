@@ -9,6 +9,8 @@ public class Player {
   public ArrayList<Integer> deck;
   public int nextCard = -1;
 
+  public transient boolean obtainedResult = false;
+
   public Player() {
 
   }
@@ -16,6 +18,10 @@ public class Player {
   public Player(String name) {
     this.name = name;
     this.score = 0;
+  }
+
+  public boolean hasPlayed() {
+    return deck.contains(nextCard);
   }
 
 }

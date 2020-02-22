@@ -53,23 +53,29 @@ public class Game {
     return player1 != null && player2 != null;
   }
 
-  public void playCard(Player player, int card) {
-    player.nextCard = card;
-    if (player1.nextCard >= 0 && player2.nextCard >= 0) {
-      Player winner = null;
-      int result = GameService.compareCards(player1.nextCard, player2.nextCard);
-      if (result < 0) {
-        winner = player1;
-      } else if (result > 0) {
-        winner = player2;
-      }
+  public boolean cardsPlayed() {
+    return player1.nextCard != -1 && player2.nextCard != -1;
+  }
 
-      for (ClientHandler listener : listeners) {
-        listener.cardsPlayedAction(winner);
-      }
+  public Player getWinner() {
+    Player winner = null;
+    int result = GameService.compareCards(player1.nextCard, player2.nextCard);
+    if (result < 0) {
+      winner = player1;
+    } else if (result > 0) {
+      winner = player2;
+    }
+
+    if (player1.obtainedResult && player2.obtainedResult) {
       player1.nextCard = -1;
       player2.nextCard = -1;
     }
+
+    return winner;
+  }
+
+  public void playCard(Player player, int card) {
+    player.nextCard = card;
   }
 
 }
