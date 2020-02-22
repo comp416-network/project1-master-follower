@@ -43,7 +43,6 @@ public class ClientHandler extends Thread implements GameListener {
       try {
         // TODO: message error checking on client side
         send("Enter command: ");
-        System.out.println("prompted client");
 
         message = Integer.parseInt(in.readLine());
         System.out.println("Received: " + message);

@@ -1,40 +1,33 @@
 package domain;
 
 import master.ClientHandler;
-import master.GameListener;
-import master.GameState;
 import service.GameService;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class Game {
 
-  private transient static int nextId = 1;
-
-  public final int id;
+  public final int gameId;
   public Player player1;
   public Player player2;
   public int rounds;
 
-  public GameState state;
-
   public transient ArrayList<Integer> deck1;
   public transient ArrayList<Integer> deck2;
 
-  public ArrayList<ClientHandler> listeners = new ArrayList<>();
+  public transient ArrayList<ClientHandler> listeners = new ArrayList<>();
+  private transient Random random = new Random();
 
   public Game() {
-    state = GameState.IDLE;
-    this.id = nextId;
-    nextId++;
+    this.gameId = random.nextInt(10000000);
   }
 
   public Game(Player player1, Player player2, int rounds) {
     this.player1 = player1;
     this.player2 = player2;
     this.rounds = rounds;
-    this.id = nextId;
-    nextId++;
+    this.gameId = random.nextInt(10000000);
   }
 
   public void addPlayer(Player player) {

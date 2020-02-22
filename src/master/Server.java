@@ -6,7 +6,6 @@ import service.IBackupAdapter;
 import service.backup.LocalBackupService;
 import service.backup.MongoDBService;
 
-import javax.lang.model.type.ArrayType;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -38,6 +37,7 @@ public class Server {
     t.schedule(new TimerTask() {
       @Override
       public void run() {
+        System.out.println("Game count: " + activeGames.size());
         DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
         Date date = new Date();
         System.out.println(dateFormat.format(date) + " - Checking if sync is needed...");
@@ -46,7 +46,7 @@ public class Server {
         updateBackups(mongoAdapter);
         updateBackups(localAdapter);
       }
-    }, 0, 5000);
+    }, 0, 30 * 1000);
 
     while (true) {
       waitForConnections();
@@ -91,7 +91,6 @@ public class Server {
 
         if (setupState == SetupState.READY) {
           activeGames.add(game);
-          game.state = GameState.WAITING;
           System.out.println("Started game.");
           setupState = SetupState.WAITING_2;
 
@@ -109,10 +108,10 @@ public class Server {
     ArrayList<Game> toDelete = new ArrayList<>();
     for (Game game : activeGames) {
       if (backupService.syncNeeded(game)){
-        System.out.println("Updated game with id: " + game.id);
+        System.out.println("Updated game with id: " + game.gameId);
         backupService.updateGameState(game);
       } else if (game.isOver()) {
-        System.out.println("Deleting game with id: " + game.id);
+        System.out.println("Deleting game with id: " + game.gameId);
         backupService.deleteGame(game);
         toDelete.add(game);
       }

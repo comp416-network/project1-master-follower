@@ -12,19 +12,19 @@ public class LocalBackupService implements IBackupAdapter {
   public boolean syncNeeded(Game localGame) {
     // remote to mean 'not being operated on'
     Game remoteGame = findGame(localGame);
-    return !remoteGame.equals(localGame);
+    return !localGame.equals(remoteGame);
   }
 
   @Override
   public Game findGame(Game game) {
     Gson gson = new Gson();
 
-    Game result = null;
+    Game result;
     try {
       FileReader jsonReader = new FileReader("storage/" + getFileNameFromGame(game));
       result = gson.fromJson(jsonReader, Game.class);
     } catch (FileNotFoundException e) {
-      e.printStackTrace();
+      result = null;
     }
 
     return result;
@@ -50,7 +50,7 @@ public class LocalBackupService implements IBackupAdapter {
   }
 
   private String getFileNameFromGame(Game game) {
-    return game.player1.name + "-" + game.player2 + ".json";
+    return game.player1.name + "-" + game.player2.name + ".json";
   }
 
 }

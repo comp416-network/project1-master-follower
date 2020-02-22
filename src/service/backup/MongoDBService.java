@@ -32,20 +32,16 @@ public class MongoDBService implements IBackupAdapter {
    */
   @Override
   public void updateGameState(Game game) {
-    List<Integer> ids = getGameIds();
-    if (ids.contains(game.id)) {
-      gamesCollection.deleteOne(eq("id", game.id));
-      System.out.println("Updated game with id: " + game.id);
-    } else {
-      System.out.println("Created new game with id: " + game.id);
-    }
+//    List<Integer> ids = getGameIds();
+    gamesCollection.deleteOne(eq("gameId", game.gameId));
     gamesCollection.insertOne(game);
+    System.out.println("[MONGO DB] Updated game: " + game.gameId);
   }
 
   @Override
   public void deleteGame(Game game) {
-    int id = game.id;
-    gamesCollection.deleteOne(eq("id", id));
+    int id = game.gameId;
+    gamesCollection.deleteOne(eq("gameId", id));
   }
 
   /**
@@ -55,20 +51,27 @@ public class MongoDBService implements IBackupAdapter {
    */
   @Override
   public Game findGame(Game game) {
-    int id = game.id;
-    return (Game) gamesCollection.find(eq("id", id));
+    int id = game.gameId;
+    Game result;
+    try {
+      result = (Game) gamesCollection.find(eq("gameId", id));
+    } catch (ClassCastException e) {
+      result = null;
+    }
+    return result;
   }
 
   /**
    * Obtains all backup game ids.
-   * @return list if game ids
+   * @return list of game ids
    */
   private List<Integer> getGameIds() {
     List<Integer> ids = new ArrayList<>();
     try (MongoCursor<Game> cursor = gamesCollection.find().iterator()) {
       while (cursor.hasNext()) {
         Game game = cursor.next();
-        ids.add(game.id);
+        System.out.println(game.gameId);
+        ids.add(game.gameId);
       }
     }
     return ids;
