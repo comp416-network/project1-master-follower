@@ -108,7 +108,6 @@ public class Server {
     ArrayList<Game> toDelete = new ArrayList<>();
     for (Game game : activeGames) {
       if (backupService.syncNeeded(game)){
-        System.out.println("Updated game with id: " + game.gameId);
         backupService.updateGameState(game);
       } else if (game.isOver()) {
         System.out.println("Deleting game with id: " + game.gameId);

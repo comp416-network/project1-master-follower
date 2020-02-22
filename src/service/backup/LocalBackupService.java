@@ -37,6 +37,7 @@ public class LocalBackupService implements IBackupAdapter {
     try {
       FileWriter jsonWriter = new FileWriter("storage/" + getFileNameFromGame(game));
       gson.toJson(game, jsonWriter);
+      System.out.println("[LOCAL] Updated game: " + game.gameId);
       jsonWriter.close();
     } catch (IOException e) {
       e.printStackTrace();

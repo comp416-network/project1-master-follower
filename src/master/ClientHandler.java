@@ -78,7 +78,7 @@ public class ClientHandler extends Thread implements GameListener {
               sleep(50);
               if (game.cardsPlayed()) {
                 player.obtainedResult = true;
-                Player winner = game.getRoundWinner();
+                Player winner = game.roundWinner();
                 cardsPlayedAction(winner);
 
                 break;
@@ -86,7 +86,7 @@ public class ClientHandler extends Thread implements GameListener {
             }
 
             if (game.isOver()) {
-              Player gameWinner = game.getGameWinner();
+              Player gameWinner = game.gameWinner();
               gameEndAction(gameWinner);
             }
 

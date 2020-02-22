@@ -61,20 +61,4 @@ public class MongoDBService implements IBackupAdapter {
     return result;
   }
 
-  /**
-   * Obtains all backup game ids.
-   * @return list of game ids
-   */
-  private List<Integer> getGameIds() {
-    List<Integer> ids = new ArrayList<>();
-    try (MongoCursor<Game> cursor = gamesCollection.find().iterator()) {
-      while (cursor.hasNext()) {
-        Game game = cursor.next();
-        System.out.println(game.gameId);
-        ids.add(game.gameId);
-      }
-    }
-    return ids;
-  }
-
 }
