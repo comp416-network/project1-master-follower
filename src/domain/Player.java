@@ -20,8 +20,4 @@ public class Player {
     this.score = 0;
   }
 
-  public boolean hasPlayed() {
-    return deck.contains(nextCard);
-  }
-
 }

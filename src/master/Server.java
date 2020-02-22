@@ -18,6 +18,11 @@ import java.util.logging.Logger;
 
 public class Server {
 
+  /**
+   * WAITING_2: Waiting for two players.
+   * WAITING_1: Waiting for one player. One player has connected.
+   * READY:     Both players have connected.
+   */
   private SetupState setupState = SetupState.WAITING_2;
 
   private ServerSocket serverSocket;
@@ -53,14 +58,6 @@ public class Server {
 
     while (true) {
       waitForConnections();
-    }
-  }
-
-  public void stop() {
-    try {
-      serverSocket.close();
-    } catch (IOException e) {
-      e.printStackTrace();
     }
   }
 
@@ -107,6 +104,10 @@ public class Server {
 
   }
 
+  /**
+   * Goes through all the active games, updating those that need updating and deleting those that have ended.
+   * @param backupService local or mongo db
+   */
   private void updateBackups(IBackupAdapter backupService) {
     ArrayList<Game> toDelete = new ArrayList<>();
     for (Game game : activeGames) {
@@ -123,6 +124,10 @@ public class Server {
     }
   }
 
+  /**
+   * Creates a new game. Deals the cards.
+   * @return the created game
+   */
   private Game initiateGame() {
     Game game = new Game();
     ArrayList<ArrayList<Integer>> decks = GameService.generateDecks();
@@ -131,6 +136,12 @@ public class Server {
     return game;
   }
 
+  /**
+   * Accept new connection, create new thread and set its game.
+   * @param socket client socket that is connecting
+   * @param game gmae to attach the client
+   * @return the ClientHandler object
+   */
   private ClientHandler connectClient(Socket socket, Game game) {
     ClientHandler handler = new ClientHandler(socket);
     handler.setGame(game);

@@ -36,9 +36,7 @@ public class ClientHandler extends Thread {
 
     Integer message = -1;
 
-    // this is the main loop that the handler checks for messages
-    //  if the isPrompting variable is false, the loop is not executed, but still repeated
-    //  it is used to block user input in a way
+    // the main loop that handles incoming messages
     while (message != QUIT_GAME.getValue()) {
       try {
         // TODO: message error checking on client side
@@ -56,6 +54,8 @@ public class ClientHandler extends Thread {
             send("Waiting for the other player...");
             game.addPlayer(player);
 
+            // wait for the game to be ready
+            // invoke gameReadyAction when game is ready
             while (true) {
               sleep(50);
               if (game.isReady()) {
@@ -63,6 +63,7 @@ public class ClientHandler extends Thread {
                 break;
               }
             }
+
           } else if (message == PLAY_CARD.getValue()) {
             send("Enter card: ");
             int card = Integer.parseInt(in.readLine());
@@ -70,6 +71,7 @@ public class ClientHandler extends Thread {
             game.playCard(player, card);
             player.obtainedResult = false;
 
+            // wait for the other player to play a card
             while (true) {
               sleep(50);
               if (game.cardsPlayed()) {
@@ -109,6 +111,9 @@ public class ClientHandler extends Thread {
 
   // LISTENER METHODS
 
+  /**
+   * Sends the cards to the client. Called when the game is ready.
+   */
   public void gameReadyAction() {
     send(Integer.toString(GAME_START.getValue()));
     for (Integer card : player.deck) {
@@ -117,6 +122,11 @@ public class ClientHandler extends Thread {
     out.flush();
   }
 
+  /**
+   * Invoked when both players have played a card.
+   * Gets the result and sends the appropriate message to the client.
+   * @param winner The player that has won the last round. Null if tie.
+   */
   public void cardsPlayedAction(Player winner) {
     send(Integer.toString(PLAY_RESULT.getValue()));
     if (player.equals(winner)) {
@@ -129,6 +139,10 @@ public class ClientHandler extends Thread {
     }
   }
 
+  /**
+   * Invoked when the game ends. Informs the player of the game result.
+   * @param winner The player that has won the game. Null if tie.
+   */
   public void gameEndAction(Player winner) {
     send(Integer.toString(GAME_RESULT.getValue()));
     if (player.equals(winner)) {
@@ -142,6 +156,9 @@ public class ClientHandler extends Thread {
 
   // HELPER METHODS
 
+  /**
+   * Closes I/O streams and the connection.
+   */
   public void close() {
     try {
       in.close();
@@ -153,6 +170,10 @@ public class ClientHandler extends Thread {
     }
   }
 
+  /**
+   * Sends a message to the client asking for its name.
+   * @return The name input by the client.
+   */
   private String askForName() {
     send("Enter name: ");
     String name = null;
@@ -164,6 +185,10 @@ public class ClientHandler extends Thread {
     return name;
   }
 
+  /**
+   * Sends a message and flushes client's output stream.
+   * @param message
+   */
   private void send(String message) {
     out.println(message);
     out.flush();

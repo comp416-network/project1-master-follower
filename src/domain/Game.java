@@ -1,6 +1,5 @@
 package domain;
 
-import master.ClientHandler;
 import service.GameService;
 
 import java.util.ArrayList;
@@ -29,6 +28,10 @@ public class Game {
     this.gameId = random.nextInt(10000000);
   }
 
+  /**
+   * add a player to the game and assign its deck
+   * @param player
+   */
   public void addPlayer(Player player) {
     if (player1 == null) {
       player1 = player;
@@ -39,14 +42,26 @@ public class Game {
     }
   }
 
+  /**
+   *
+   * @return true if both players have connected to the game.
+   */
   public boolean isReady() {
     return player1 != null && player2 != null;
   }
 
+  /**
+   *
+   * @return true if both players has played their cards for the round.
+   */
   public boolean cardsPlayed() {
     return player1.nextCard != -1 && player2.nextCard != -1;
   }
 
+  /**
+   * Determines the winner of the current round and prepares the game for the next round.
+   * @return the winner of this round, null if tie.
+   */
   public Player roundWinner() {
     Player winner = null;
     int result = GameService.compareCards(player1.nextCard, player2.nextCard);
@@ -64,6 +79,10 @@ public class Game {
     return winner;
   }
 
+  /**
+   * Determines the winner of the game.
+   * @return the winner of the game
+   */
   public Player gameWinner() {
     if (player1.score > player2.score) {
       return player1;
@@ -73,10 +92,19 @@ public class Game {
     return null;
   }
 
+  /**
+   *
+   * @return true if enough rounds has been played, false otherwise.
+   */
   public boolean isOver() {
     return rounds == 26;
   }
 
+  /**
+   *
+   * @param player Player playing the card.
+   * @param card Integer value of the card being played.
+   */
   public void playCard(Player player, int card) {
     player.nextCard = card;
     player.deck.remove((Integer) card);

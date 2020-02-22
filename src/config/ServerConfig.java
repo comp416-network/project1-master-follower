@@ -7,5 +7,4 @@ public class ServerConfig {
 
   public static int SYNC_SECONDS = 30;
 
-
 }
