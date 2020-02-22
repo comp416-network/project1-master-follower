@@ -1,5 +1,6 @@
 package master;
 
+import config.ServerConfig;
 import domain.Game;
 import service.GameService;
 import service.IBackupAdapter;
@@ -17,9 +18,6 @@ import java.util.logging.Logger;
 
 public class Server {
 
-  public static final String DEFAULT_ADDRESS = "localhost";
-  public static final int DEFAULT_PORT = 4242;
-
   private SetupState setupState = SetupState.WAITING_2;
 
   private ServerSocket serverSocket;
@@ -34,7 +32,7 @@ public class Server {
     try {
       activeGames = new ArrayList<>();
       serverSocket = new ServerSocket(port);
-      System.out.println("Listening on port: " + DEFAULT_PORT);
+      System.out.println("Listening on port: " + ServerConfig.PORT);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -51,7 +49,7 @@ public class Server {
         updateBackups(mongoAdapter);
         updateBackups(localAdapter);
       }
-    }, 0, 30 * 1000);
+    }, 0, ServerConfig.SYNC_SECONDS * 1000);
 
     while (true) {
       waitForConnections();
