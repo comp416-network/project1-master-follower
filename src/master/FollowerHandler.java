@@ -80,6 +80,7 @@ public class FollowerHandler extends Thread {
                 System.out.println("Successfully sent file: " + file);
               }
             }
+            sentFiles = new ArrayList<>();
             break;
           case "NO_CHANGE":
             break;

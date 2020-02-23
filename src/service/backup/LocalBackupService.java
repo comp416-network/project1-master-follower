@@ -76,6 +76,7 @@ public class LocalBackupService implements IBackupAdapter {
   }
 
   public ArrayList<String> getFileNames(String directory) {
+    createDirectoryIfDoesntExist(directory);
     try (Stream<Path> walk = Files.walk(Paths.get(directory + "/"))) {
       List<String> result = walk.filter(Files::isRegularFile)
               .map(x -> x.toString()).collect(Collectors.toList());
@@ -86,6 +87,17 @@ public class LocalBackupService implements IBackupAdapter {
       e.printStackTrace();
     }
     return null;
+  }
+
+  private void createDirectoryIfDoesntExist(String directory) {
+    Path path = Paths.get(directory + "/");
+    if (!Files.exists(path)) {
+      try {
+        Files.createDirectories(path);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
   }
 
 

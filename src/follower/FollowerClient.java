@@ -130,8 +130,8 @@ public class FollowerClient {
     }
 
     public byte[] getFileChecksum(File input) {
-      try (InputStream in = new FileInputStream(input)) {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      try (InputStream in = new FileInputStream(new File("Follower" + id + "/" + input.getName()))) {
+        MessageDigest digest = MessageDigest.getInstance("SHA1");
         byte[] block = new byte[4096];
         int length;
         while ((length = in.read(block)) > 0) {
