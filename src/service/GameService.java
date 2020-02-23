@@ -30,8 +30,9 @@ public class GameService {
    * @return -1 if c1 is greater, +1 if c2 is greater, 0 if tie
    */
   public static int compareCards(int c1, int c2) {
-    // TODO
-    return 0;
+    int score1 = c1 % 13;
+    int score2 = c2 % 13;
+    return Integer.compare(score2, score1);
   }
 
 }
