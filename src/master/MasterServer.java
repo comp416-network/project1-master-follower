@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Server {
+public class MasterServer extends Thread {
 
   /**
    * WAITING_2: Waiting for two players.
@@ -25,19 +25,19 @@ public class Server {
    */
   private SetupState setupState = SetupState.WAITING_2;
 
-  private ServerSocket serverSocket;
+  private ServerSocket clientServerSocket;
 
   private ArrayList<Game> activeGames;
 
-  public Server(int port) {
+  public MasterServer() {
     // make mongodb quieter
     Logger mongoLogger = Logger.getLogger( "org.mongodb.driver" );
     mongoLogger.setLevel(Level.SEVERE);
 
     try {
       activeGames = new ArrayList<>();
-      serverSocket = new ServerSocket(port);
-      System.out.println("Listening on port: " + ServerConfig.PORT);
+      clientServerSocket = new ServerSocket(ServerConfig.CLIENT_PORT);
+      System.out.println("Listening on port for clients: " + ServerConfig.CLIENT_PORT);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -56,6 +56,10 @@ public class Server {
       }
     }, 0, ServerConfig.SYNC_SECONDS * 1000);
 
+  }
+
+  @Override
+  public void run() {
     while (true) {
       waitForConnections();
     }
@@ -67,12 +71,17 @@ public class Server {
     Game game = null;
     while (true) {
       try {
-        Socket socket = serverSocket.accept();
+        Socket clientSocket = clientServerSocket.accept();
+//        Socket followerDataSocket = followerDataServerSocket.accept();
+//        Socket followerCommandSocket = followerCommandServerSocket.accept();
+
+        // CLIENT
+
         if (setupState == SetupState.WAITING_2) {
           game = initiateGame();
           setupState = SetupState.WAITING_1;
           System.out.println("First client connected.");
-          client1Handler = connectClient(socket, game);
+          client1Handler = connectClient(clientSocket, game);
         } else if (setupState == SetupState.WAITING_1) {
           if (!client1Handler.getClientSocket().isConnected()) {
             // detect if client 1 has disconnected while waiting for client2
@@ -81,9 +90,9 @@ public class Server {
             game = initiateGame();
             setupState = SetupState.WAITING_1;
             System.out.println("First client connected.");
-            client1Handler = connectClient(socket, game);
+            client1Handler = connectClient(clientSocket, game);
           } else {
-            client2Handler = connectClient(socket, game);
+            client2Handler = connectClient(clientSocket, game);
             setupState = SetupState.READY;
             System.out.println("Second client connected.");
           }
@@ -96,6 +105,13 @@ public class Server {
 
           return;
         }
+
+        // FOLLOWER
+
+//        ArrayList<FollowerClient> followerHandlers = new ArrayList<>();
+//        FollowerClient handler = new FollowerClient(followerDataSocket, followerCommandSocket);
+//        followerHandlers.add(handler);
+//        System.out.println("New follower connected.");
 
       } catch (IOException e) {
         e.printStackTrace();
@@ -113,7 +129,8 @@ public class Server {
     for (Game game : activeGames) {
       if (backupService.syncNeeded(game)){
         backupService.updateGameState(game);
-      } else if (game.isOver()) {
+      }
+      if (game.isOver()) {
         System.out.println("Deleting game with id: " + game.gameId);
         backupService.deleteGame(game);
         toDelete.add(game);
@@ -139,7 +156,7 @@ public class Server {
   /**
    * Accept new connection, create new thread and set its game.
    * @param socket client socket that is connecting
-   * @param game gmae to attach the client
+   * @param game Game to attach the client
    * @return the ClientHandler object
    */
   private ClientHandler connectClient(Socket socket, Game game) {

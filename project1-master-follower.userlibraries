@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eclipse-userlibraries>
+  <library name="gson-2.8.6">
+    <archive path="/Users/egeerdogan/Downloads/gson-2.8.6.jar" />
+  </library>
+  <library name="mongo-java-driver-3.9.0">
+    <archive path="/Users/egeerdogan/Downloads/mongo-java-driver-3.9.0.jar" />
+  </library>
+</eclipse-userlibraries>
+
