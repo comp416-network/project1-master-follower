@@ -36,7 +36,7 @@ public class FollowerHandler extends Thread {
       ArrayList<String> sentFiles = new ArrayList<>();
       while (true) {
         String message = in.readLine();
-        ArrayList<String> fileNames = (new LocalBackupService()).getFileNames();
+        ArrayList<String> fileNames = (new LocalBackupService()).getFileNames("storage");
         ArrayList<String> hashes = new ArrayList<>();
         for (String fileName : fileNames) {
           hashes.add(getHash(new File(fileName)));

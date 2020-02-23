@@ -52,7 +52,7 @@ public class FollowerClient {
               hashes.add(hash);
             }
             ArrayList<String> ownHashes = new ArrayList<>();
-            ArrayList<String> fileNames = (new LocalBackupService()).getFileNames();
+            ArrayList<String> fileNames = (new LocalBackupService()).getFileNames("Follower" + id);
             for (String fileName : fileNames) {
               String hash = getHash(new File(fileName));
               ownHashes.add(hash);

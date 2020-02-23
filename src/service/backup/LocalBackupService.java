@@ -75,8 +75,8 @@ public class LocalBackupService implements IBackupAdapter {
     return game.player1.name + "-" + game.player2.name + ".json";
   }
 
-  public ArrayList<String> getFileNames() {
-    try (Stream<Path> walk = Files.walk(Paths.get("storage/"))) {
+  public ArrayList<String> getFileNames(String directory) {
+    try (Stream<Path> walk = Files.walk(Paths.get(directory + "/"))) {
       List<String> result = walk.filter(Files::isRegularFile)
               .map(x -> x.toString()).collect(Collectors.toList());
 
