@@ -1,4 +1,6 @@
-import master.Server;
+import follower.FollowerClient;
+import master.FollowerServer;
+import master.MasterServer;
 
 import java.util.Scanner;
 
@@ -11,9 +13,13 @@ public class Main {
     String response = scanner.next();
     if (response.equals("m") || response.equals("master")) {
       System.out.println("Running as master.");
-      Server server = new Server(4242);
+      MasterServer masterServer = new MasterServer();
+      FollowerServer followerServer = new FollowerServer();
+      followerServer.start();
+      masterServer.start();
     } else if (response.equals("f") || response.equals("follower")) {
       System.out.println("Running as follower.");
+      FollowerClient client = new FollowerClient();
     } else {
       System.err.println("Unrecognized input. Terminating.");
     }

@@ -32,7 +32,6 @@ public class MongoDBService implements IBackupAdapter {
    */
   @Override
   public void updateGameState(Game game) {
-//    List<Integer> ids = getGameIds();
     gamesCollection.deleteOne(eq("gameId", game.gameId));
     gamesCollection.insertOne(game);
     System.out.println("[MONGO DB] Updated game: " + game.gameId);

@@ -3,6 +3,7 @@ package domain;
 import service.GameService;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Random;
 
 public class Game {
@@ -16,9 +17,11 @@ public class Game {
   public transient ArrayList<Integer> deck2;
 
   private transient Random random = new Random();
+  private transient boolean isOver;
 
   public Game() {
     this.gameId = random.nextInt(10000000);
+    isOver = false;
   }
 
   public Game(Player player1, Player player2, int rounds) {
@@ -26,6 +29,7 @@ public class Game {
     this.player2 = player2;
     this.rounds = rounds;
     this.gameId = random.nextInt(10000000);
+    isOver = false;
   }
 
   /**
@@ -55,7 +59,10 @@ public class Game {
    * @return true if both players has played their cards for the round.
    */
   public boolean cardsPlayed() {
-    return player1.nextCard != -1 && player2.nextCard != -1;
+    if (!isOver) {
+      return player1.nextCard != -1 && player2.nextCard != -1;
+    }
+    return true;
   }
 
   /**
@@ -64,16 +71,18 @@ public class Game {
    */
   public Player roundWinner() {
     Player winner = null;
-    int result = GameService.compareCards(player1.nextCard, player2.nextCard);
-    if (result < 0) {
-      winner = player1;
-    } else if (result > 0) {
-      winner = player2;
-    }
+    if (!isOver) {
+      int result = GameService.compareCards(player1.nextCard, player2.nextCard);
+      if (result < 0) {
+        winner = player1;
+      } else if (result > 0) {
+        winner = player2;
+      }
 
-    if (player1.obtainedResult && player2.obtainedResult) {
-      player1.nextCard = -1;
-      player2.nextCard = -1;
+      if (player1.obtainedResult && player2.obtainedResult) {
+        player1.nextCard = -1;
+        player2.nextCard = -1;
+      }
     }
 
     return winner;
@@ -84,11 +93,19 @@ public class Game {
    * @return the winner of the game
    */
   public Player gameWinner() {
-    if (player1.score > player2.score) {
-      return player1;
-    } else if (player2.score > player1.score) {
+    if (player1 == null) {
       return player2;
+    } else if (player2 == null) {
+      return player1;
+    } else {
+      if (player1.score > player2.score) {
+        return player1;
+      } else if (player2.score > player1.score) {
+        return player2;
+      }
     }
+
+    printScore();
     return null;
   }
 
@@ -97,7 +114,7 @@ public class Game {
    * @return true if enough rounds has been played, false otherwise.
    */
   public boolean isOver() {
-    return rounds == 26;
+    return rounds == 3 || isOver;
   }
 
   /**
@@ -111,6 +128,29 @@ public class Game {
     if (cardsPlayed()) {
       rounds++;
     }
+  }
+
+  public void playerQuit(Player player) {
+    isOver = true;
+    if (player.equals(player1)) {
+      player1 = null;
+    } else if (player.equals(player2)) {
+      player2 = null;
+    }
+  }
+
+  private void printScore() {
+    System.out.println(player1.score + " - " + player2.score);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof Game)) return false;
+    Game game = (Game) o;
+    return rounds == game.rounds &&
+            isOver == game.isOver &&
+            Objects.equals(deck1, game.deck1) &&
+            Objects.equals(deck2, game.deck2);
   }
 
 }

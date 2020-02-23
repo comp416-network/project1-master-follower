@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.ArrayList;
 
 import static master.Message.*;
 
@@ -40,18 +41,31 @@ public class ClientHandler extends Thread {
     while (message != QUIT_GAME.getValue()) {
       try {
         // TODO: message error checking on client side
-        send("Enter command (0 -> want game, 2 -> play card, 5 -> quit):");
+//        send("Enter command (0 -> want game, 2 -> play card, 5 -> quit):");
 
-        message = Integer.parseInt(in.readLine());
+        String messageString = in.readLine();
+        String payload = null;
+        String[] arr = new String[2];
+        if (messageString == null) {
+          this.close();
+        } else {
+          arr = messageString.split("/", 2);
+          if (arr.length == 1) {
+            payload = "0";
+          } else {
+            payload = arr[1];
+          }
+          message = Integer.parseInt(arr[0]);
+        }
+
         if (message != QUIT_GAME.getValue()) {
 
           // handle message
           if (message == WANT_GAME.getValue()) {
-            String name = askForName();
+            String name = payload;
             System.out.println("Player ready: " + name);
             player = new Player(name);
 
-            send("Waiting for the other player...");
             game.addPlayer(player);
 
             // wait for the game to be ready
@@ -65,9 +79,12 @@ public class ClientHandler extends Thread {
             }
 
           } else if (message == PLAY_CARD.getValue()) {
-            send("Enter card: ");
-            int card = Integer.parseInt(in.readLine());
-            send("Waiting for other player to play a card...");
+            if (game.isOver()) {
+              Player gameWinner = game.gameWinner();
+              gameEndAction(gameWinner);
+            }
+
+            int card = Integer.parseInt(payload);
             game.playCard(player, card);
             player.obtainedResult = false;
 
@@ -91,6 +108,10 @@ public class ClientHandler extends Thread {
             System.out.println("received wrong message.");
           }
 
+        } else {
+          // client sent quit message
+          game.playerQuit(player);
+          send("6/6"); // arbitrary message
         }
 
       } catch (IOException | InterruptedException e) {
@@ -115,10 +136,12 @@ public class ClientHandler extends Thread {
    * Sends the cards to the client. Called when the game is ready.
    */
   public void gameReadyAction() {
-    send(Integer.toString(GAME_START.getValue()));
-    for (Integer card : player.deck) {
-      out.println(card);
+    ArrayList<Integer> deck = player.deck;
+    StringBuilder deckString = new StringBuilder();
+    for (Integer card : deck) {
+      deckString.append(card).append("/");
     }
+    send(deckString.toString());
     out.flush();
   }
 
@@ -128,14 +151,19 @@ public class ClientHandler extends Thread {
    * @param winner The player that has won the last round. Null if tie.
    */
   public void cardsPlayedAction(Player winner) {
-    send(Integer.toString(PLAY_RESULT.getValue()));
     if (player.equals(winner)) {
       player.score++;
-      send(Integer.toString(ResultMessage.WIN.getValue()));
+      if (!game.isOver()) {
+        send(PLAY_RESULT.getValue() + "/" + ResultMessage.WIN.getValue());
+      }
     } else if (winner == null) {
-      send(Integer.toString(ResultMessage.DRAW.getValue()));
+      if (!game.isOver()) {
+        send(PLAY_RESULT.getValue() + "/" + ResultMessage.DRAW.getValue());
+      }
     } else {
-      send(Integer.toString(ResultMessage.LOSE.getValue()));
+      if (!game.isOver()) {
+        send(PLAY_RESULT.getValue() + "/" + ResultMessage.LOSE.getValue());
+      }
     }
   }
 
@@ -144,13 +172,12 @@ public class ClientHandler extends Thread {
    * @param winner The player that has won the game. Null if tie.
    */
   public void gameEndAction(Player winner) {
-    send(Integer.toString(GAME_RESULT.getValue()));
     if (player.equals(winner)) {
-      send(Integer.toString(ResultMessage.WIN.getValue()));
+      send(GAME_RESULT.getValue() + "/" + ResultMessage.WIN.getValue());
     } else if (winner == null) {
-      send(Integer.toString(ResultMessage.LOSE.getValue()));
+      send(GAME_RESULT.getValue() + "/" + ResultMessage.DRAW.getValue());
     } else {
-      send(Integer.toString(ResultMessage.DRAW.getValue()));
+      send(GAME_RESULT.getValue() + "/" + ResultMessage.LOSE.getValue());
     }
   }
 
