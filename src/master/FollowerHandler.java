@@ -37,9 +37,14 @@ public class FollowerHandler extends Thread {
       while (true) {
         String message = in.readLine();
         ArrayList<String> fileNames = (new LocalBackupService()).getFileNames();
-        ArrayList<String> hashes = (ArrayList<String>) fileNames.stream().map(file -> getHash(new File(file)));
+        ArrayList<String> hashes = new ArrayList<>();
+        for (String fileName : fileNames) {
+          hashes.add(getHash(new File(fileName)));
+        }
+
         switch (message) {
           case "BACKUP":
+            System.out.println("Received BACKUP message from follower.");
             out.println(fileNames.size());
             out.flush();
             for (String hash : hashes) {
@@ -47,27 +52,39 @@ public class FollowerHandler extends Thread {
             }
             out.flush();
             sentFiles = new ArrayList<>();
-          case "RETRANSMIT":
-            for (String fileName : sentFiles) {
-              sendFile(new File("storage/" + fileName));
-            }
-          case "CONSISTENCY_CHECK_PASSED":
+            break;
           case "TRANSMIT":
             int fileCount = Integer.parseInt(in.readLine());
+            System.out.println("Sending file hashes to follower.");
             for (int i = 0; i < fileCount; i++) {
               String hash = in.readLine();
               for (String localHash : hashes) {
                 if (localHash.equals(hash)) {
                   int fileIndex = hashes.indexOf(localHash);
                   String fileName = fileNames.get(fileIndex);
-                  File file = new File("storage/" + fileName);
                   sentFiles.add(fileName);
-                  sendFile(file);
                 }
               }
+              for (String fileName : sentFiles) {
+                File file = new File(fileName);
+                sendFile(file);
+                out.println(getHash(file));
+                out.flush();
+                String response = in.readLine();
+                while (response.equals("RETRANSMIT")) {
+                  sendFile(file);
+                  out.println(getHash(file));
+                  out.flush();
+                  response = in.readLine();
+                }
+                System.out.println("Successfully sent file: " + file);
+              }
             }
+            break;
           case "NO_CHANGE":
+            break;
           default:
+            break;
         }
       }
 

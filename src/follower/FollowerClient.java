@@ -21,8 +21,14 @@ public class FollowerClient {
 
   private Socket socket;
 
+  private static int nextId = 1;
+  private int id;
+
   public FollowerClient() {
     try {
+      this.id = nextId;
+      nextId++;
+
       this.socket = new Socket("localhost", PORT);
       in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
       out = new PrintWriter(socket.getOutputStream());
@@ -35,7 +41,7 @@ public class FollowerClient {
         @Override
         public void run() {
           out.println("BACKUP");
-          System.out.println("Sent backup msg.");
+          System.out.println("Sent BACKUP message to master.");
           out.flush();
 
           try {
@@ -48,12 +54,13 @@ public class FollowerClient {
             ArrayList<String> ownHashes = new ArrayList<>();
             ArrayList<String> fileNames = (new LocalBackupService()).getFileNames();
             for (String fileName : fileNames) {
-              String hash = getHash(new File("storage/" + fileName));
+              String hash = getHash(new File(fileName));
               ownHashes.add(hash);
             }
             hashes.removeAll(ownHashes);
 
-            System.out.println("Received hashes.");
+            System.out.println("Received hashes from master.");
+            System.out.println("Initiating TRANSMIT...");
             out.println("TRANSMIT");
             out.flush();
 
@@ -63,11 +70,20 @@ public class FollowerClient {
               out.println(hash);
               out.flush();
               File receivedFile = receiveFile();
+              String receivedHash = in.readLine();
+              while (!getHash(receivedFile).equals(receivedHash)) {
+                out.println("RETRANSMIT");
+                out.flush();
+                receivedFile = receiveFile();
+                receivedHash = in.readLine();
+                System.out.println("Error receiving file: " + receivedFile.getName());
+                System.out.println("\tTrying again...");
+              }
+              out.println("CONSISTENCY_CHECK_PASSED");
+              System.out.println("Successfully received file: " + receivedFile.getName());
             }
             out.flush();
-            System.out.println("Asked for missing files.");
-
-
+            System.out.println("Asked for " + hashes.size() + " missing files.");
 
           } catch (IOException | GeneralSecurityException e) {
             e.printStackTrace();
@@ -95,7 +111,7 @@ public class FollowerClient {
       String fileSize = scanLineFromStream(bIn);
       File receivedFile = new File(fileName.toString());
 
-      FileOutputStream foStream = new FileOutputStream("storage/" + receivedFile);
+      FileOutputStream foStream = new FileOutputStream("Follower" + id + "/" + receivedFile);
 
       ProtocolUtilities.sendBytes(bIn, foStream, Long.parseLong(fileSize));
 
@@ -115,7 +131,7 @@ public class FollowerClient {
 
     public byte[] getFileChecksum(File input) {
       try (InputStream in = new FileInputStream(input)) {
-        MessageDigest digest = MessageDigest.getInstance("SHA1");
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] block = new byte[4096];
         int length;
         while ((length = in.read(block)) > 0) {
@@ -127,60 +143,5 @@ public class FollowerClient {
       }
       return null;
     }
-
-//    public void run() {
-//      while (true) {
-//        String command;
-//
-//        try {
-//          in = new BufferedInputStream(socket.getInputStream());
-//          out = new BufferedOutputStream(socket.getOutputStream());
-//          ArrayList<String> headerParts = ProtocolUtilities.consumeAndBreakHeader(in);
-//          command = headerParts.get(0);
-//        } catch (IOException e) {
-//          e.printStackTrace();
-//          return;
-//        } catch (NullPointerException e) {
-//          e.printStackTrace();
-//          return;
-//        }
-//
-//        if(command.equals("SHA")) {
-//          try {
-//            fileChecksum=getChecksum();
-//          } catch (IOException e) {
-//            System.err.println("Connection to client dropped. Failed to send public key.");
-//          }
-//        } else if(command.equals("FILE TRANSFER")){
-//          try {
-//            File file = receiveFile();
-//
-//            System.out.println("Name: " + file.getName());
-//            String check = Arrays.toString(getFileChecksum(new File(file.getName())));
-//
-//            if(check.equals(fileChecksum)) {
-//              System.out.println("CONSISTENCY_CHECK_PASSED");
-//              out.write("CONSISTENCY_CHECK_PASSED".getBytes("ASCII"));
-//              out.flush();
-//              socket.close();
-//            }else {
-//              out.write("FAIL\nunsuccessful transmission\n\n".getBytes("ASCII"));
-//              out.flush();
-//              socket.close();}
-//          } catch (GeneralSecurityException e) {
-//            e.printStackTrace();
-//            return;
-//          } catch (IOException e) {
-//            e.printStackTrace();
-//            System.err.println("Connection to client dropped.");
-//            return;
-//          }
-//
-//        } else if (command.equals("RETRANSMIT")){
-//          System.out.println("RETRANSMIT");
-//
-//        } else System.out.println("Invalid command detected: " + command);
-//      }
-//      }
 
 }
