@@ -99,6 +99,7 @@ public class ClientHandler extends Thread {
               }
             }
 
+            // if game has ended after last round
             if (game.isOver()) {
               Player gameWinner = game.gameWinner();
               gameEndAction(gameWinner);

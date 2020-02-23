@@ -17,6 +17,11 @@ import java.util.stream.Stream;
 
 public class LocalBackupService implements IBackupAdapter {
 
+  /**
+   * Checks if game state has changed.
+   * @param localGame
+   * @return true if game backup needs update, false otherwise.
+   */
   @Override
   public boolean syncNeeded(Game localGame) {
     // remote to mean 'not being operated on'
@@ -24,6 +29,11 @@ public class LocalBackupService implements IBackupAdapter {
     return !localGame.equals(remoteGame);
   }
 
+  /**
+   * Finds the game from the backup files and returns it.
+   * @param game game to search for
+   * @return the game found.
+   */
   @Override
   public Game findGame(Game game) {
     Gson gson = new Gson();
@@ -39,6 +49,10 @@ public class LocalBackupService implements IBackupAdapter {
     return result;
   }
 
+  /**
+   * Updates the game backup file with the given game state.
+   * @param game to be updated.
+   */
   @Override
   public void updateGameState(Game game) {
     Gson gson = new Gson();
@@ -56,12 +70,21 @@ public class LocalBackupService implements IBackupAdapter {
     }
   }
 
+  /**
+   * Deletes the game backup.
+   * @param game game to be deleted.
+   */
   @Override
   public void deleteGame(Game game) {
     File file = new File("storage/" + getFileNameFromGame(game));
     file.delete();
   }
 
+  /**
+   * Creates file name from game player names.
+   * @param game game to generate name from.
+   * @return backup file name of the given game.
+   */
   private String getFileNameFromGame(Game game) {
     if (game == null) {
       return null;
@@ -75,6 +98,11 @@ public class LocalBackupService implements IBackupAdapter {
     return game.player1.name + "-" + game.player2.name + ".json";
   }
 
+  /**
+   * Gets all the backup file names.
+   * @param directory directory to search for
+   * @return an arraylist of filenames
+   */
   public ArrayList<String> getFileNames(String directory) {
     createDirectoryIfDoesntExist(directory);
     try (Stream<Path> walk = Files.walk(Paths.get(directory + "/"))) {
@@ -89,6 +117,10 @@ public class LocalBackupService implements IBackupAdapter {
     return null;
   }
 
+  /**
+   * Creates given directory if it doesnt exist.
+   * @param directory directory to be created.
+   */
   private void createDirectoryIfDoesntExist(String directory) {
     Path path = Paths.get(directory + "/");
     if (!Files.exists(path)) {

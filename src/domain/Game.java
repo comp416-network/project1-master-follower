@@ -114,7 +114,7 @@ public class Game {
    * @return true if enough rounds has been played, false otherwise.
    */
   public boolean isOver() {
-    return rounds == 3 || isOver;
+    return rounds == 26 || isOver;
   }
 
   /**
@@ -130,6 +130,10 @@ public class Game {
     }
   }
 
+  /**
+   * Updates game state when a player quits.
+   * @param player player that has quit.
+   */
   public void playerQuit(Player player) {
     isOver = true;
     if (player.equals(player1)) {
@@ -143,6 +147,11 @@ public class Game {
     System.out.println(player1.score + " - " + player2.score);
   }
 
+  /**
+   * Compares two Game objects for equality.
+   * @param o object to compare
+   * @return true if they are equal, false otherwise
+   */
   @Override
   public boolean equals(Object o) {
     if (!(o instanceof Game)) return false;

@@ -12,9 +12,6 @@ import java.util.Arrays;
 
 public class FollowerHandler extends Thread {
 
-  private static String hostName;
-  private static int portNumber;
-
   private Socket socket;
   private BufferedReader in;
   private PrintWriter out;
@@ -89,17 +86,11 @@ public class FollowerHandler extends Thread {
         }
       }
 
-
     } catch (IOException e) {
       e.printStackTrace();
     } catch (GeneralSecurityException e) {
       e.printStackTrace();
     }
-  }
-
-  private void send(String message) {
-    out.println(message);
-    out.flush();
   }
 
   private void sendFile(File file) throws FileNotFoundException, IOException, GeneralSecurityException {
@@ -111,14 +102,23 @@ public class FollowerHandler extends Thread {
     FileInputStream fileStream = new FileInputStream(file);
     ProtocolUtilities.sendBytes(fileStream,out);
 
-    //out.write("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n".getBytes("ASCII"));
     out.flush();
   }
 
+  /**
+   * Returns hash of the given file.
+   * @param file to calculate the hash of
+   * @return the hash of the file as a string
+   */
   private String getHash(File file) {
     return Arrays.toString(getFileChecksum(file));
   }
 
+  /**
+   * Generates checksum from given file
+   * @param input
+   * @return
+   */
   public static byte[] getFileChecksum(File input) {
     try (InputStream in = new FileInputStream(input)) {
       MessageDigest digest = MessageDigest.getInstance("SHA1");

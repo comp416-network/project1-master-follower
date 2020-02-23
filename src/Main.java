@@ -11,6 +11,7 @@ public class Main {
     System.out.println("War game master/follower application started.");
     System.out.print("Run as (m)aster or (f)ollower?: ");
     String response = scanner.next();
+    // ask for master/follower mode when program launches.
     if (response.equals("m") || response.equals("master")) {
       System.out.println("Running as master.");
       MasterServer masterServer = new MasterServer();

@@ -42,6 +42,7 @@ public class MasterServer extends Thread {
       e.printStackTrace();
     }
 
+    // sync local/mongodb backup files periodically
     Timer t = new Timer();
     t.schedule(new TimerTask() {
       @Override
@@ -72,12 +73,11 @@ public class MasterServer extends Thread {
     while (true) {
       try {
         Socket clientSocket = clientServerSocket.accept();
-//        Socket followerDataSocket = followerDataServerSocket.accept();
-//        Socket followerCommandSocket = followerCommandServerSocket.accept();
 
         // CLIENT
 
         if (setupState == SetupState.WAITING_2) {
+          // create new game if first player connects
           game = initiateGame();
           setupState = SetupState.WAITING_1;
           System.out.println("First client connected.");
@@ -92,12 +92,14 @@ public class MasterServer extends Thread {
             System.out.println("First client connected.");
             client1Handler = connectClient(clientSocket, game);
           } else {
+            // attach second client to existing game
             client2Handler = connectClient(clientSocket, game);
             setupState = SetupState.READY;
             System.out.println("Second client connected.");
           }
         }
 
+        // start game when both has connected
         if (setupState == SetupState.READY) {
           activeGames.add(game);
           System.out.println("Started game.");
@@ -105,13 +107,6 @@ public class MasterServer extends Thread {
 
           return;
         }
-
-        // FOLLOWER
-
-//        ArrayList<FollowerClient> followerHandlers = new ArrayList<>();
-//        FollowerClient handler = new FollowerClient(followerDataSocket, followerCommandSocket);
-//        followerHandlers.add(handler);
-//        System.out.println("New follower connected.");
 
       } catch (IOException e) {
         e.printStackTrace();
